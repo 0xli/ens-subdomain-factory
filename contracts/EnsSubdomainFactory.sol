@@ -31,6 +31,9 @@ contract EnsSubdomainFactory {
 	ReverseRegistrar public reverseRegistrar;
 	bool public locked;
   bytes32 emptyNamehash = 0x00;
+	// 1 Ether = 2000 sundomains
+	uint256 public subdomainPrice = 500000000000000;
+	uint256 public subdomainSold;
 
 	event SubdomainCreated(address indexed creator, address indexed owner, string subdomain, string domain, string topdomain);
 	event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -44,6 +47,25 @@ contract EnsSubdomainFactory {
 		resolver = _resolver;
 		locked = false;
 	}
+
+    function withdraw() public {
+        require(msg.sender == owner);
+        owner.transfer(address(this).balance);
+    }
+	function transferOwnership(address _owner) public onlyOwner {
+		owner = _owner;
+	}
+
+
+    // Function to receive Ether. msg.data must be empty
+//    receive() external payable {}
+
+    // Fallback function is called when msg.data is not empty
+  //  fallback() external payable {}
+
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
+    }
 
 	/**
 	 * @dev Throws if called by any account other than the owner.
@@ -59,7 +81,13 @@ contract EnsSubdomainFactory {
 		return string(abi.encodePacked(a, b, c, d, e));
 
 	}
+	function setPrice(uint256 _newPrice) public{
+		require(msg.sender==address(this) );
+		subdomainPrice = _newPrice;
+	}
+
 	/**
+	 * payable subdomainPrice
 	 * @dev Allows to create a subdomain (e.g. "radek.startonchain.eth"),
 	 * set its resolver and set its target address
 	 * @param _subdomain - sub domain name only e.g. "radek"
@@ -68,7 +96,7 @@ contract EnsSubdomainFactory {
 	 * @param _owner - address that will become owner of this new subdomain
 	 * @param _target - address that this new domain will resolve to
 	 */
-	function newSubdomain(string _subdomain, string _domain, string _topdomain, address _owner, address _target) public {
+	function newSubdomain(string _subdomain, string _domain, string _topdomain, address _owner, address _target) public payable{
 		//create namehash for the topdomain
 		bytes32 topdomainNamehash = keccak256(abi.encodePacked(emptyNamehash, keccak256(abi.encodePacked(_topdomain))));
 		//create namehash for the domain
@@ -82,6 +110,10 @@ contract EnsSubdomainFactory {
 		//make sure it is free or owned by the sender
 		require(registry.owner(subdomainNamehash) == address(0) ||
 			registry.owner(subdomainNamehash) == msg.sender, "sub domain already owned");
+		// pay for subdomain
+		require(msg.value == (subdomainPrice));
+		subdomainSold += 1;
+
 		//create new subdomain, temporarily this smartcontract is the owner
 		registry.setSubnodeOwner(domainNamehash, subdomainLabelhash, address(this));
 		//set public resolver for this domain
@@ -97,7 +129,7 @@ contract EnsSubdomainFactory {
 		// reverseRegistrar.setName(append(_subdomain,".",_domain,".",_topdomain));
 	}
 
-	function newSubdomainName(string _subdomain, string _domain, string _topdomain) public view returns (string) {
+	function newSubdomainName(string _subdomain, string _domain, string _topdomain) public pure returns (string) {
 		return append(_subdomain,".",_domain,".",_topdomain);
 	}
 
