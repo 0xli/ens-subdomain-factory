@@ -1,7 +1,9 @@
 pragma solidity ^0.4.24;
+//pragma solidity >=0.8.4;
 
 import './EnsRegistry.sol';
 import './EnsResolver.sol';
+import './ReverseRegistrar.sol';
 
 // ---------------------------------------------------------------------------------------------------
 // EnsSubdomainFactory - allows creating and configuring custom ENS subdomains with one contract call.
@@ -17,10 +19,16 @@ import './EnsResolver.sol';
  * to this deployed contract address. For example, transfer the ownership of "startonchain.eth"
  * so anyone can create subdomains like "radek.startonchain.eth".
  */
+ /*
+ const rinkebyEns={ens:'0x98325eDBE53119bB4A5ab7Aa35AA4621f49641E6',
+        resolver:'0xAe41CFDE7ABfaaA2549C07b2363458154355bAbD',
+        reverse: '0xFdb1b60AdFCba28f28579D709a096339F5bEb651'}
+ */
 contract EnsSubdomainFactory {
 	address public owner;
 	EnsRegistry public registry;
 	EnsResolver public resolver;
+	ReverseRegistrar public reverseRegistrar;
 	bool public locked;
   bytes32 emptyNamehash = 0x00;
 
@@ -46,6 +54,11 @@ contract EnsSubdomainFactory {
 		_;
 	}
 
+	function append(string a, string b, string c, string d, string e) internal pure returns (string) {
+
+		return string(abi.encodePacked(a, b, c, d, e));
+
+	}
 	/**
 	 * @dev Allows to create a subdomain (e.g. "radek.startonchain.eth"),
 	 * set its resolver and set its target address
@@ -79,6 +92,13 @@ contract EnsSubdomainFactory {
 		registry.setOwner(subdomainNamehash, _owner);
 
 		emit SubdomainCreated(msg.sender, _owner, _subdomain, _domain, _topdomain);
+
+		// do reverse, can not do it this way
+		// reverseRegistrar.setName(append(_subdomain,".",_domain,".",_topdomain));
+	}
+
+	function newSubdomainName(string _subdomain, string _domain, string _topdomain) public view returns (string) {
+		return append(_subdomain,".",_domain,".",_topdomain);
 	}
 
 	/**
