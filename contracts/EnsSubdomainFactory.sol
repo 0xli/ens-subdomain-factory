@@ -1,9 +1,9 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.26;
 //pragma solidity >=0.8.4;
 
 import './EnsRegistry.sol';
 import './EnsResolver.sol';
-import './ReverseRegistrar.sol';
+//import './ReverseRegistrar.sol';
 
 // ---------------------------------------------------------------------------------------------------
 // EnsSubdomainFactory - allows creating and configuring custom ENS subdomains with one contract call.
@@ -26,12 +26,14 @@ import './ReverseRegistrar.sol';
  */
 contract EnsSubdomainFactory {
 	address public owner;
+	address public admin;
 	EnsRegistry public registry;
 	EnsResolver public resolver;
-	ReverseRegistrar public reverseRegistrar;
+//	ReverseRegistrar public reverseRegistrar;
 	bool public locked;
   bytes32 emptyNamehash = 0x00;
 	// 1 Ether = 2000 sundomains
+	uint256 public freeNameLength = 8;
 	uint256 public subdomainPrice = 500000000000000;
 	uint256 public subdomainSold;
 
@@ -43,6 +45,7 @@ contract EnsSubdomainFactory {
 
 	constructor(EnsRegistry _registry, EnsResolver _resolver) public {
 		owner = msg.sender;
+		admin = msg.sender;
 		registry = _registry;
 		resolver = _resolver;
 		locked = false;
@@ -82,8 +85,12 @@ contract EnsSubdomainFactory {
 
 	}
 	function setPrice(uint256 _newPrice) public{
-		require(msg.sender==address(this) );
+		require(msg.sender==admin );
 		subdomainPrice = _newPrice;
+	}
+	function setFreeNameLength(uint256 _newLength) public{
+		require(msg.sender==admin );
+		freeNameLength = _newLength;
 	}
 
 	/**
@@ -111,7 +118,8 @@ contract EnsSubdomainFactory {
 		require(registry.owner(subdomainNamehash) == address(0) ||
 			registry.owner(subdomainNamehash) == msg.sender, "sub domain already owned");
 		// pay for subdomain
-		require(msg.value == (subdomainPrice));
+		if (bytes(_subdomain).length<freeNameLength)
+			require(msg.value == (subdomainPrice));
 		subdomainSold += 1;
 
 		//create new subdomain, temporarily this smartcontract is the owner
