@@ -26,7 +26,7 @@ import './EnsResolver.sol';
         reverse: '0xFdb1b60AdFCba28f28579D709a096339F5bEb651'}
  */
 contract EnsSubdomainFactory {
-	address public owner;
+	address payable public owner;
 	address public admin;
 	EnsRegistry public registry;
 	EnsResolver public resolver;
@@ -54,9 +54,9 @@ contract EnsSubdomainFactory {
 
     function withdraw() public {
         require(msg.sender == owner);
-        //owner.transfer(address(this).balance);
+        owner.transfer(address(this).balance);
     }
-	function transferOwnership(address _owner) public onlyOwner {
+	function transferOwnership(address payable  _owner) public onlyOwner {
 		owner = _owner;
 	}
 
@@ -223,7 +223,7 @@ contract EnsSubdomainFactory {
 	 * @dev Allows the current owner to transfer control of the contract to a new owner.
 	 * @param _owner The address to transfer ownership to.
 	 */
-	function transferContractOwnership(address _owner) public onlyOwner {
+	function transferContractOwnership(address payable _owner) public onlyOwner {
 		require(_owner != address(0), "cannot transfer to address(0)");
 		emit OwnershipTransferred(owner, _owner);
 		owner = _owner;
