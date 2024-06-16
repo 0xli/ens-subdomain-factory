@@ -1,5 +1,6 @@
-pragma solidity ^0.4.26;
+//pragma solidity ^0.4.26;
 //pragma solidity >=0.8.4;
+pragma solidity >=0.5.15;
 
 import './EnsRegistry.sol';
 import './EnsResolver.sol';
@@ -53,7 +54,7 @@ contract EnsSubdomainFactory {
 
     function withdraw() public {
         require(msg.sender == owner);
-        owner.transfer(address(this).balance);
+        //owner.transfer(address(this).balance);
     }
 	function transferOwnership(address _owner) public onlyOwner {
 		owner = _owner;
@@ -79,7 +80,7 @@ contract EnsSubdomainFactory {
 		_;
 	}
 
-	function append(string a, string b, string c, string d, string e) internal pure returns (string) {
+	function append(string memory a, string memory b, string memory c, string memory d, string memory e) internal pure returns (string memory) {
 
 		return string(abi.encodePacked(a, b, c, d, e));
 
@@ -103,7 +104,7 @@ contract EnsSubdomainFactory {
 	 * @param _owner - address that will become owner of this new subdomain
 	 * @param _target - address that this new domain will resolve to
 	 */
-	function newSubdomain(string _subdomain, string _domain, string _topdomain, address _owner, address _target) public payable{
+	function newSubdomain(string memory _subdomain, string memory _domain, string memory _topdomain, address _owner, address _target) public payable{
 		//create namehash for the topdomain
 		bytes32 topdomainNamehash = keccak256(abi.encodePacked(emptyNamehash, keccak256(abi.encodePacked(_topdomain))));
 		//create namehash for the domain
@@ -125,7 +126,7 @@ contract EnsSubdomainFactory {
 		//create new subdomain, temporarily this smartcontract is the owner
 		registry.setSubnodeOwner(domainNamehash, subdomainLabelhash, address(this));
 		//set public resolver for this domain
-		registry.setResolver(subdomainNamehash, resolver);
+		registry.setResolver(subdomainNamehash, address(resolver));
 		//set the destination address
 		resolver.setAddr(subdomainNamehash, _target);
 		//change the ownership back to requested owner
@@ -137,7 +138,7 @@ contract EnsSubdomainFactory {
 		// reverseRegistrar.setName(append(_subdomain,".",_domain,".",_topdomain));
 	}
 
-	function newSubdomainName(string _subdomain, string _domain, string _topdomain) public pure returns (string) {
+	function newSubdomainName(string memory _subdomain, string memory _domain, string memory _topdomain) public pure returns (string memory) {
 		return append(_subdomain,".",_domain,".",_topdomain);
 	}
 
@@ -146,7 +147,7 @@ contract EnsSubdomainFactory {
 	 * @param _domain - domain name e.g. "startonchain"
 	 * @param _topdomain - parent domain name e.g. "eth" or "xyz"
 	 */
-	function domainOwner(string _domain, string _topdomain) public view returns (address) {
+	function domainOwner(string memory _domain, string memory _topdomain) public view returns (address) {
 		bytes32 topdomainNamehash = keccak256(abi.encodePacked(emptyNamehash, keccak256(abi.encodePacked(_topdomain))));
 		bytes32 namehash = keccak256(abi.encodePacked(topdomainNamehash, keccak256(abi.encodePacked(_domain))));
 		return registry.owner(namehash);
@@ -158,7 +159,7 @@ contract EnsSubdomainFactory {
 	 * @param _domain - parent domain name e.g. "startonchain"
 	 * @param _topdomain - parent domain name e.g. "eth", "xyz"
 	 */
-	function subdomainOwner(string _subdomain, string _domain, string _topdomain) public view returns (address) {
+	function subdomainOwner(string memory _subdomain, string memory _domain, string memory _topdomain) public view returns (address) {
 		bytes32 topdomainNamehash = keccak256(abi.encodePacked(emptyNamehash, keccak256(abi.encodePacked(_topdomain))));
 		bytes32 domainNamehash = keccak256(abi.encodePacked(topdomainNamehash, keccak256(abi.encodePacked(_domain))));
 		bytes32 subdomainNamehash = keccak256(abi.encodePacked(domainNamehash, keccak256(abi.encodePacked(_subdomain))));
@@ -171,7 +172,7 @@ contract EnsSubdomainFactory {
     * @param _domain - parent domain name e.g. "startonchain"
     * @param _topdomain - parent domain name e.g. "eth", "xyz"
     */
-    function subdomainTarget(string _subdomain, string _domain, string _topdomain) public view returns (address) {
+    function subdomainTarget(string memory _subdomain, string memory _domain, string memory _topdomain) public view returns (address) {
         bytes32 topdomainNamehash = keccak256(abi.encodePacked(emptyNamehash, keccak256(abi.encodePacked(_topdomain))));
         bytes32 domainNamehash = keccak256(abi.encodePacked(topdomainNamehash, keccak256(abi.encodePacked(_domain))));
         bytes32 subdomainNamehash = keccak256(abi.encodePacked(domainNamehash, keccak256(abi.encodePacked(_subdomain))));
@@ -204,7 +205,7 @@ contract EnsSubdomainFactory {
 	 */
 	function updateRegistry(EnsRegistry _registry) public onlyOwner {
 		require(registry != _registry, "new registry should be different from old");
-		emit RegistryUpdated(registry, _registry);
+		emit RegistryUpdated(address(registry), address(_registry));
 		registry = _registry;
 	}
 
@@ -214,7 +215,7 @@ contract EnsSubdomainFactory {
 	 */
 	function updateResolver(EnsResolver _resolver) public onlyOwner {
 		require(resolver != _resolver, "new resolver should be different from old");
-		emit ResolverUpdated(resolver, _resolver);
+		emit ResolverUpdated(address(resolver), address(_resolver));
 		resolver = _resolver;
 	}
 

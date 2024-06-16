@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
+//SPDX-License-Identifier: <SPDX-License>
+//pragma solidity ^0.4.24;
 //pragma solidity >=0.8.4;
-
+pragma solidity >=0.5.15;
 
 /**
  * @title EnsResolver
